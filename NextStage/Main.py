@@ -1,8 +1,8 @@
 ## NextStageGames ##
 import os
 import time
-from Gerente import ADM
-from Gerente import menu_adm
+from Maneger import ADM
+from Maneger import menu_adm
 from Cliente import cliente_main
 
 def entrar_menu():

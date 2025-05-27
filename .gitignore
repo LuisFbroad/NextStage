@@ -1,0 +1,57 @@
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+venv/
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Diretórios temporários
+tmp/
+temp/
+*.tmp
+
+# IDEs e editores
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Arquivos de build
+dist/
+build/
+out/
+target/
+
+# Node.js
+node_modules/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+
+# MacOS e Linux
+*.swp
+*~
+
+# Windows
+*.bak
+*.lnk
+
+# Git
+*.orig
+
+# Outros
+.env.*
+!.env.example
