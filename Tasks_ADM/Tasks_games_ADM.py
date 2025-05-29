@@ -1,7 +1,5 @@
 import os
 from db import criar_conexao
-from datetime import date
-import bcrypt
 
 def limpar_tela():
     if os.name == 'nt':
