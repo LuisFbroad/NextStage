@@ -1,5 +1,7 @@
 import os
 from db import criar_conexao
+from datetime import date
+import bcrypt
 
 def limpar_tela():
     if os.name == 'nt':
@@ -233,4 +235,86 @@ def atualizar_estoque():
             conn.close()
 
 def cadastrar_lojista():
-    print("Fazer dps")
+    conn = criar_conexao()
+    if conn is None:
+        print("Erro ao conectar ao banco de dados.")
+        input("Pressione Enter para continuar...")
+        return
+
+    try:
+        cursor = conn.cursor()
+        limpar_tela()
+        print("\n--- Cadastrar Novo Lojista / Funcionário ---")
+
+        name = input("Nome completo do funcionário: ").strip()
+        if not name:
+            print("O nome não pode ser vazio.")
+            return
+
+        email = input("E-mail (usado para login, deve ser único): ").strip()
+        if not email:
+            print("O e-mail não pode ser vazio.")
+            return
+        cursor.execute("SELECT employee_id FROM employee WHERE LOWER(email) = LOWER(%s);", (email,))
+        if cursor.fetchone():
+            print("Já existe um funcionário cadastrado com este e-mail.")
+            return
+
+        password = input("Senha: ").strip()
+        if not password:
+            print("A senha não pode ser vazia.")
+            return
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+        cpf = input("CPF, sem a utilização de (.) e (-): ").strip()
+        if cpf:
+            cursor.execute("SELECT employee_id FROM employee WHERE cpf = %s;", (cpf,))
+            if cursor.fetchone():
+                print("Já existe um funcionário cadastrado com este CPF.")
+                return
+        else:
+            cpf = None
+
+        phone = input("Telefone (opcional): ").strip()
+        if not phone:
+            phone = None
+
+        address = input("Endereço (opcional): ").strip()
+        if not address:
+            address = None
+
+        while True:
+            hire_date_str = input("Data de contratação (AAAA-MM-DD): ").strip()
+            try:
+                hire_date = date.fromisoformat(hire_date_str)
+                break
+            except ValueError:
+                print("Formato de data inválido. Use AAAA-MM-DD.")
+        
+        role = input("Cargo (ex: Lojista, Vendedor, Administrador): ").strip()
+        if not role:
+            print("O cargo não pode ser vazio.")
+            return
+        
+        is_active = True
+
+        cursor.execute(
+            """
+            INSERT INTO employee (name, email, password_hash, cpf, phone, address, hire_date, role, is_active)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING employee_id;
+            """,
+            (name, email, hashed_password, cpf, phone, address, hire_date, role, is_active)
+        )
+        employee_id = cursor.fetchone()[0]
+
+        conn.commit()
+        print(f"Funcionário '{name}' (ID: {employee_id}) cadastrado com sucesso como {role}!")
+
+    except Exception as e:
+        print(f"Erro ao cadastrar funcionário: {e}")
+        if conn:
+            conn.rollback()
+    finally:
+        if conn:
+            conn.close()
+        input("Pressione Enter para continuar...")
