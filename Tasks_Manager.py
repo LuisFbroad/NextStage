@@ -15,6 +15,22 @@ def adicionar_jogo():
     try:
         cursor = conn.cursor()
         limpar_tela()
+        print("\n--- Catálogo Atual de Jogos ---")
+        cursor.execute("""
+            SELECT g.game_name, g.genre, g.price, COALESCE(s.quantity_available, 0)
+            FROM games g
+            LEFT JOIN stock s ON g.game_id = s.game_id
+            ORDER BY g.game_name;
+        """)
+        jogos = cursor.fetchall()
+        
+        if jogos:
+            for idx, (nome, genero, preco, estoque) in enumerate(jogos, start=1):
+                preco_str = f"R$ {preco:.2f}" if preco is not None else "N/A"
+                print(f"{idx}. {nome} | Gênero: {genero} | Preço: {preco_str} | Estoque: {estoque}")
+        else:
+            print("Nenhum jogo cadastrado no momento.")
+
         print("\n--- Adicionar Novo Jogo ao Catálogo ---")
 
         nome = input("Nome do jogo: ").strip()
@@ -90,6 +106,70 @@ def adicionar_jogo():
         if conn:
             conn.close()
         input("Pressione Enter para continuar...")
+
+def apagar_jogo():
+    conn = criar_conexao()
+    if conn is None:
+        print("Erro ao conectar ao banco de dados.")
+        input("Pressione Enter para continuar...")
+        return
+
+    try:
+        cursor = conn.cursor()
+        limpar_tela()
+        print("\n--- Catálogo Atual de Jogos ---")
+        cursor.execute("""
+            SELECT g.game_id, g.game_name, COALESCE(s.quantity_available, 0)
+            FROM games g
+            LEFT JOIN stock s ON g.game_id = s.game_id
+            ORDER BY g.game_name;
+        """)
+        jogos = cursor.fetchall()
+
+        if not jogos:
+            print("Nenhum jogo cadastrado no momento.")
+            input("Pressione Enter para continuar...")
+            return
+
+        for idx, (game_id, nome, estoque) in enumerate(jogos, start=1):
+            print(f"{idx}. {nome} | Estoque: {estoque}")
+
+        escolha_input = input("\nDigite o número do jogo que deseja apagar ou ENTER para cancelar: ").strip()
+        if not escolha_input:
+            print("Operação cancelada.")
+            input("Pressione Enter para continuar...")
+            return
+
+        try:
+            escolha_idx = int(escolha_input) - 1
+            if 0 <= escolha_idx < len(jogos):
+                game_id_selecionado = jogos[escolha_idx][0]
+                nome_selecionado = jogos[escolha_idx][1]
+
+                confirm = input(f"Tem certeza que deseja apagar o jogo '{nome_selecionado}'? (s/n): ").strip().lower()
+                if confirm != 's':
+                    print("Operação cancelada.")
+                    input("Pressione Enter para continuar...")
+                    return
+
+                cursor.execute("DELETE FROM stock WHERE game_id = %s;", (game_id_selecionado,))
+                cursor.execute("DELETE FROM games WHERE game_id = %s;", (game_id_selecionado,))
+
+                conn.commit()
+                print(f"Jogo '{nome_selecionado}' apagado com sucesso.")
+            else:
+                print("Escolha inválida.")
+        except ValueError:
+            print("Entrada inválida. Digite um número válido.")
+
+        input("Pressione Enter para continuar...")
+
+    except Exception as e:
+        print(f"Erro ao apagar jogo: {e}")
+        input("Pressione Enter para continuar...")
+    finally:
+        if conn:
+            conn.close()
 
 def atualizar_estoque():
     conn = criar_conexao()

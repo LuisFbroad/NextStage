@@ -27,20 +27,23 @@ def menu_adm():
     while True:
         limpar_tela()
         print("\n--- Menu Administrador ---")
-        print("1 --- Gerenciar Catálogo")
-        print("2 --- Alterar estoque")
-        print("3 --- Cadastrar Lojista")
-        print("4 --- Fechar sistema")
+        print("1 --- Adicionar Catálogo")
+        print("2 --- Apagar jogo do Catálogo")
+        print("3 --- Alterar estoque")
+        print("4 --- Cadastrar Lojista")
+        print("5 --- Fechar sistema")
         
         opcao = input("Escolha uma opção: ")
 
         if opcao == "1":
             adicionar_jogo()
         elif opcao == "2":
-            atualizar_estoque()
+            apagar_jogo()
         elif opcao == "3":
-            cadastrar_lojista()
+            atualizar_estoque()
         elif opcao == "4":
+            cadastrar_lojista()
+        elif opcao == "5":
             print("Sistema encerrado.")
             break
         else:
