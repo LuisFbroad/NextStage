@@ -1,4 +1,5 @@
 from Tasks_Manager import *
+from Task_employee_ADM import *
 import os 
 
 def limpar_tela():
@@ -30,9 +31,8 @@ def menu_adm():
         print("1 --- Adicionar Catálogo")
         print("2 --- Apagar jogo do Catálogo")
         print("3 --- Alterar estoque")
-        print("4 --- Cadastrar Lojista")
-        print("5 --- Olhar Funcionarios")
-        print("6 --- Fechar sistema")
+        print("4 --- Gerenciar Funcionarios")
+        print("5 --- Fechar Sistema")
         
         opcao = input("Escolha uma opção: ")
 
@@ -43,9 +43,9 @@ def menu_adm():
         elif opcao == "3":
             atualizar_estoque()
         elif opcao == "4":
-            cadastrar_lojista()
+            menu_employee()
         elif opcao == "5":
-            mostrar_funcionarios_adm()
+            break
         else:
             print("Opção inválida. Tente novamente.")
             input("Pressione Enter para continuar...")
