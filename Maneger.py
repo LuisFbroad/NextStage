@@ -35,7 +35,7 @@ def menu_adm():
         opcao = input("Escolha uma opção: ")
 
         if opcao == "1":
-            atualizar_catalogo()
+            adicionar_jogo()
         elif opcao == "2":
             atualizar_estoque()
         elif opcao == "3":
