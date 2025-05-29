@@ -31,7 +31,8 @@ def menu_adm():
         print("2 --- Apagar jogo do Catálogo")
         print("3 --- Alterar estoque")
         print("4 --- Cadastrar Lojista")
-        print("5 --- Fechar sistema")
+        print("5 --- Olhar Funcionarios")
+        print("6 --- Fechar sistema")
         
         opcao = input("Escolha uma opção: ")
 
@@ -44,8 +45,7 @@ def menu_adm():
         elif opcao == "4":
             cadastrar_lojista()
         elif opcao == "5":
-            print("Sistema encerrado.")
-            break
+            mostrar_funcionarios_adm()
         else:
             print("Opção inválida. Tente novamente.")
             input("Pressione Enter para continuar...")

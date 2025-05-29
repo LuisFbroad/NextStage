@@ -318,3 +318,53 @@ def cadastrar_lojista():
         if conn:
             conn.close()
         input("Pressione Enter para continuar...")
+
+def mostrar_funcionarios_adm():
+    conn = criar_conexao()
+    if conn is None:
+        print("Erro ao conectar ao banco de dados.")
+        input("Pressione Enter para continuar...")
+        return
+
+    try:
+        cursor = conn.cursor()
+        limpar_tela()
+        print("\n--- Funcionários Cadastrados ---")
+
+        cursor.execute("""
+            SELECT
+                employee_id,
+                name,
+                email,
+                cpf,
+                phone,
+                address,
+                hire_date,
+                role,
+                is_active
+            FROM
+                employee
+            ORDER BY
+                name;
+        """)
+        funcionarios = cursor.fetchall()
+
+        if not funcionarios:
+            print("Nenhum funcionário cadastrado no momento.")
+        else:
+            print(f"{'ID':<5} {'Nome':<30} {'E-mail':<30} {'CPF':<15} {'Telefone':<15} {'Cargo':<20} {'Contratação':<15} {'Ativo':<8}")
+            print("-" * 140)
+            for func in funcionarios:
+                employee_id, name, email, cpf, phone, address, hire_date, role, is_active = func
+                cpf_str = cpf if cpf else "N/A"
+                phone_str = phone if phone else "N/A"
+                active_str = "Sim" if is_active else "Não"
+                hire_date_str = hire_date.strftime('%Y-%m-%d') if hire_date else "N/A"
+                print(f"{employee_id:<5} {name:<30} {email:<30} {cpf_str:<15} {phone_str:<15} {role:<20} {hire_date_str:<15} {active_str:<8}")
+
+    except Exception as e:
+        print(f"Erro ao buscar funcionários: {e}")
+    finally:
+        if conn:
+            conn.close()
+        input("\nPressione Enter para continuar...")
