@@ -31,9 +31,9 @@ def adicionar_jogo():
         else:
             print("Nenhum jogo cadastrado no momento.")
 
-        print("\n--- Adicionar Novo Jogo ao Catálogo ---")
+        print("\n--- Adicionar Novo Jogo ---")
 
-        nome = input("Nome do jogo: ").strip()
+        nome = input("Nome do jogo..: ").strip()
         if not nome:
             print("O nome do jogo não pode ser vazio.")
             input("Pressione Enter para continuar...")
@@ -45,24 +45,24 @@ def adicionar_jogo():
             input("Pressione Enter para continuar...")
             return
 
-        descricao = input("Descrição do jogo (pressione ENTER para deixar em branco): ").strip()
+        descricao = input("Descrição do jogo (pressione ENTER para deixar em branco)..: ").strip()
         if not descricao:
             descricao = None
 
-        genre = input("Gênero do jogo: ").strip()
+        genre = input("Gênero do jogo..: ").strip()
         if not genre:
             print("O gênero do jogo não pode ser vazio.")
             input("Pressione Enter para continuar...")
             return
 
-        classificacao = input("Classificação indicativa: ").strip()
+        classificacao = input("Classificação indicativa..: ").strip()
         if not classificacao:
             print("A classificação indicativa não pode ser vazia.")
             input("Pressione Enter para continuar...")
             return
 
         while True:
-            preco_input = input("Preço do jogo: ").strip()
+            preco_input = input("Preço do jogo..: ").strip()
             try:
                 preco = float(preco_input)
                 if preco < 0:
@@ -73,7 +73,7 @@ def adicionar_jogo():
                 print("Preço inválido. Digite um número válido.")
 
         try:
-            estoque_inicial = int(input("Quantidade inicial em estoque: "))
+            estoque_inicial = int(input("Quantidade inicial em estoque..: "))
             if estoque_inicial < 0:
                 print("A quantidade não pode ser negativa.")
                 input("Pressione Enter para continuar...")
@@ -231,3 +231,96 @@ def atualizar_estoque():
     finally:
         if conn:
             conn.close()
+
+def buscar_jogo():
+    conn = criar_conexao()
+    if conn is None:
+        print("Erro ao conectar ao banco de dados.")
+        input("Pressione Enter para continuar...")
+        return
+
+    try:
+        cursor = conn.cursor()
+        limpar_tela()
+        print("\n--- Catálogo Atual de Jogos ---")
+
+        sql_todos_jogos = """
+            SELECT g.game_name, g.genre, g.price, COALESCE(s.quantity_available, 0) as quantity
+            FROM games g
+            LEFT JOIN stock s ON g.game_id = s.game_id
+            ORDER BY g.game_name;
+        """
+        cursor.execute(sql_todos_jogos)
+        catalogo_jogos = cursor.fetchall()
+
+        if catalogo_jogos:
+            print(f"{'Nome do Jogo':<40} {'Gênero':<20} {'Preço':<10} {'Estoque':<8}")
+            print("-" * 80)
+            for nome, genero, preco, estoque in catalogo_jogos:
+                preco_str = f"R$ {preco:.2f}" if preco is not None else "N/A"
+                print(f"{nome:<40} {genero:<20} {preco_str:<10} {estoque:<8}")
+        else:
+            print("Nenhum jogo cadastrado no catálogo atualmente.")
+
+        print("\n--- Buscar Jogo por Nome ---")
+        nome_busca = input("Digite o nome do jogo para buscar (parcial ou completo) ou ENTER para voltar: ").strip()
+
+        if not nome_busca:
+            print("Operação de busca cancelada.")
+            input("Pressione Enter para continuar...")
+            return
+
+        sql_busca_por_nome = """
+            SELECT g.game_name, g.genre, g.price, COALESCE(s.quantity_available, 0) as quantity
+            FROM games g
+            LEFT JOIN stock s ON g.game_id = s.game_id
+            WHERE LOWER(g.game_name) LIKE LOWER(%s)
+            ORDER BY g.game_name;
+        """
+        cursor.execute(sql_busca_por_nome, ('%' + nome_busca + '%',))
+        resultados = cursor.fetchall()
+
+        limpar_tela()
+        print(f"\n--- Resultados da Busca por '{nome_busca}' ---")
+        if resultados:
+            print(f"{'Nome do Jogo':<40} {'Gênero':<20} {'Preço':<10} {'Estoque':<8}")
+            print("-" * 80)
+            for nome, genero, preco, estoque in resultados:
+                preco_str = f"R$ {preco:.2f}" if preco is not None else "N/A"
+                print(f"{nome:<40} {genero:<20} {preco_str:<10} {estoque:<8}")
+        else:
+            print(f"Nenhum jogo encontrado com o nome '{nome_busca}'.")
+
+    except Exception as e:
+        print(f"Erro ao buscar jogo: {e}")
+    finally:
+        if conn:
+            conn.close()
+        input("\nPressione Enter para continuar...")
+
+def menu_games():
+    while True:
+        limpar_tela()
+        print("\n--- Menu de Gerenciamento de Jogos ---")
+        print("1. Adicionar Novo Jogo")
+        print("2. Apagar Jogo Existente")
+        print("3. Atualizar Estoque de Jogo")
+        print("4. Buscar Jogo")
+        print("0. Sair")
+
+        opcao = input("Escolha uma opção: ").strip()
+
+        if opcao == '1':
+            adicionar_jogo()
+        elif opcao == '2':
+            apagar_jogo()
+        elif opcao == '3':
+            atualizar_estoque()
+        elif opcao == '4':
+            buscar_jogo()
+        elif opcao == '0':
+            print("Saindo do programa. Até mais!")
+            break
+        else:
+            print("Opção inválida. Por favor, tente novamente.")
+            input("Pressione Enter para continuar...")

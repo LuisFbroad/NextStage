@@ -37,7 +37,7 @@ def cadastrar_lojista():
         if not password:
             print("A senha não pode ser vazia.")
             return
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        hashed_password = criotpgrafar(password)
 
         cpf = input("CPF, sem a utilização de (.) e (-): ").strip()
         if cpf:
@@ -372,3 +372,13 @@ def menu_employee():
         else:
             print("Opção inválida. Tente novamente.")
             input("Pressione Enter para continuar...")
+
+def criotpgrafar(password):
+   password_bytes = password.encode('utf-8')
+   salt = bcrypt.gensalt()
+   hashed = bcrypt.hashpw(password_bytes, salt)
+   return hashed
+
+def checar_password(password, hashed):
+   password_bytes = password.encode('utf-8')
+   return bcrypt.checkpw(password_bytes, hashed)

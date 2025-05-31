@@ -3,7 +3,6 @@ import time
 from datetime import datetime
 from Maneger import ADM
 from Maneger import menu_adm
-from Cliente import cliente_main
 
 def entrar_menu():
     while True:
@@ -26,8 +25,7 @@ while True:
 
     if escolha == 1:
         try:
-            limpar_tela()
-            cliente_main()
+            print("Tanto faz")
         except Exception as e:
             erro_msg = f"Ocorreu um erro ao executar o cliente: {e}"
             time.sleep(2)
