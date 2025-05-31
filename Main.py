@@ -3,11 +3,12 @@ import time
 from datetime import datetime
 from Maneger import ADM
 from Maneger import menu_adm
+from Employee import login_funcionario
 
 def entrar_menu():
     while True:
         try:
-            print("Cliente digite 1.\nADM digite 2.\nPara fechar o terminal 3.")
+            print("Vendedor digite 1.\nADM digite 2.\nPara fechar o terminal 3.")
             escolha = int(input("Qual sua opção\n"))
             return escolha
         except ValueError:
@@ -25,7 +26,7 @@ while True:
 
     if escolha == 1:
         try:
-            print("Tanto faz")
+         login_funcionario()
         except Exception as e:
             erro_msg = f"Ocorreu um erro ao executar o cliente: {e}"
             time.sleep(2)
