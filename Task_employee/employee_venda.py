@@ -2,6 +2,13 @@ import os
 from db import criar_conexao
 from datetime import date
 
+def limpar_tela():
+    if os.name == 'nt':
+        os.system('cls')
+
+from datetime import date
+import traceback
+
 def employee_venda(employee_id_logado):
     conn = criar_conexao()
     if conn is None:
@@ -46,7 +53,7 @@ def employee_venda(employee_id_logado):
                 print("-" * 65)
                 for game_id, item in carrinho.items():
                     subtotal_item = item['quantidade'] * item['preco_unitario']
-                    print(f"{item['nome']:<30} {item['quantidade']:<5} R$ {item['preco_unitario']:.2f:<15} R$ {subtotal_item:.2f:<15}")
+                    print(f"{item['nome']:<30} {item['quantidade']:<5} R$ {item['preco_unitario']:.2f}      R$ {subtotal_item:.2f}")
                 print("-" * 65)
                 print(f"{'TOTAL DA VENDA':<52} R$ {total_venda:.2f}")
 
@@ -61,75 +68,79 @@ def employee_venda(employee_id_logado):
             if opcao == '1':
                 try:
                     id_jogo_add = int(input("Digite o ID do jogo para adicionar: ").strip())
-                    quantidade_add = int(input("Digite a quantidade: ").strip())
+                except ValueError:
+                    print("ID inválido. Digite um número.")
+                    input("Pressione Enter para continuar...")
+                    continue
 
+                try:
+                    quantidade_add = int(input("Digite a quantidade: ").strip())
                     if quantidade_add <= 0:
                         print("A quantidade deve ser maior que zero.")
                         input("Pressione Enter para continuar...")
                         continue
-
-                    cursor.execute("""
-                        SELECT g.game_name, g.price, COALESCE(s.quantity_available, 0)
-                        FROM games g
-                        LEFT JOIN stock s ON g.game_id = s.game_id
-                        WHERE g.game_id = %s;
-                    """, (id_jogo_add,))
-                    resultado_jogo = cursor.fetchone()
-
-                    if resultado_jogo:
-                        nome_jogo, preco_unitario, estoque_disponivel = resultado_jogo
-
-                        quantidade_no_carrinho = carrinho.get(id_jogo_add, {}).get('quantidade', 0)
-                        
-                        if (quantidade_no_carrinho + quantidade_add) > estoque_disponivel:
-                            print(f"Estoque insuficiente! Disponível: {estoque_disponivel - quantidade_no_carrinho}. Você está tentando adicionar {quantidade_add}.")
-                        else:
-                            if id_jogo_add in carrinho:
-                                carrinho[id_jogo_add]['quantidade'] += quantidade_add
-                            else:
-                                carrinho[id_jogo_add] = {
-                                    'nome': nome_jogo,
-                                    'quantidade': quantidade_add,
-                                    'preco_unitario': preco_unitario
-                                }
-                            total_venda += (quantidade_add * preco_unitario)
-                            print(f"{quantidade_add}x '{nome_jogo}' adicionado(s) ao carrinho.")
-                    else:
-                        print("ID do jogo não encontrado.")
                 except ValueError:
-                    print("Entrada inválida para ID ou quantidade.")
+                    print("Quantidade inválida. Digite um número inteiro.")
+                    input("Pressione Enter para continuar...")
+                    continue
+
+                cursor.execute("""
+                    SELECT g.game_name, g.price, COALESCE(s.quantity_available, 0)
+                    FROM games g
+                    LEFT JOIN stock s ON g.game_id = s.game_id
+                    WHERE g.game_id = %s;
+                """, (id_jogo_add,))
+                resultado_jogo = cursor.fetchone()
+
+                if resultado_jogo:
+                    nome_jogo, preco_unitario, estoque_disponivel = resultado_jogo
+                    quantidade_no_carrinho = carrinho.get(id_jogo_add, {}).get('quantidade', 0)
+
+                    if (quantidade_no_carrinho + quantidade_add) > estoque_disponivel:
+                        print(f"Estoque insuficiente! Disponível: {estoque_disponivel - quantidade_no_carrinho}.")
+                    else:
+                        if id_jogo_add in carrinho:
+                            carrinho[id_jogo_add]['quantidade'] += quantidade_add
+                        else:
+                            carrinho[id_jogo_add] = {
+                                'nome': nome_jogo,
+                                'quantidade': quantidade_add,
+                                'preco_unitario': preco_unitario
+                            }
+                        total_venda += (quantidade_add * preco_unitario)
+                        print(f"{quantidade_add}x '{nome_jogo}' adicionado(s) ao carrinho.")
+                else:
+                    print("ID do jogo não encontrado.")
                 input("Pressione Enter para continuar...")
 
             elif opcao == '2':
                 if not carrinho:
-                    print("O carrinho está vazio. Não há itens para remover.")
+                    print("O carrinho está vazio.")
                     input("Pressione Enter para continuar...")
                     continue
-                
+
                 print("\nItens no Carrinho:")
                 itens_listados = []
                 for i, (game_id, item) in enumerate(carrinho.items(), start=1):
                     itens_listados.append(game_id)
                     print(f"{i}. {item['nome']} (Qtde: {item['quantidade']})")
-                
+
                 try:
-                    escolha_remover_idx = int(input("Digite o número do item para remover do carrinho: ").strip()) - 1
+                    escolha_remover_idx = int(input("Digite o número do item para remover: ").strip()) - 1
                     if 0 <= escolha_remover_idx < len(itens_listados):
                         game_id_remover = itens_listados[escolha_remover_idx]
-                        item_a_remover = carrinho[game_id_remover]
-
-                        qtde_remover = int(input(f"Quantas unidades de '{item_a_remover['nome']}' deseja remover (atual: {item_a_remover['quantidade']})? ").strip())
-                        
+                        item = carrinho[game_id_remover]
+                        qtde_remover = int(input(f"Quantas unidades de '{item['nome']}' deseja remover? ").strip())
                         if qtde_remover <= 0:
-                            print("A quantidade a remover deve ser maior que zero.")
-                        elif qtde_remover >= item_a_remover['quantidade']:
-                            total_venda -= (item_a_remover['quantidade'] * item_a_remover['preco_unitario'])
+                            print("Quantidade inválida.")
+                        elif qtde_remover >= item['quantidade']:
+                            total_venda -= item['quantidade'] * item['preco_unitario']
                             del carrinho[game_id_remover]
-                            print(f"Todas as unidades de '{item_a_remover['nome']}' removidas do carrinho.")
+                            print(f"Item removido do carrinho.")
                         else:
                             carrinho[game_id_remover]['quantidade'] -= qtde_remover
-                            total_venda -= (qtde_remover * item_a_remover['preco_unitario'])
-                            print(f"{qtde_remover}x '{item_a_remover['nome']}' removido(s) do carrinho.")
+                            total_venda -= qtde_remover * item['preco_unitario']
+                            print(f"{qtde_remover} unidade(s) removida(s).")
                     else:
                         print("Escolha inválida.")
                 except ValueError:
@@ -138,102 +149,80 @@ def employee_venda(employee_id_logado):
 
             elif opcao == '3':
                 if not carrinho:
-                    print("O carrinho está vazio. Não é possível finalizar a venda.")
+                    print("Carrinho vazio.")
                     input("Pressione Enter para continuar...")
                     continue
 
-                print("\n--- Finalizar Venda ---")
-                
                 cliente_id = None
-                opcao_cliente = input("Associar a um cliente existente? (s/n): ").strip().lower()
-                if opcao_cliente == 's':
-                    cpf_cliente = input("Digite o CPF do cliente (somente números): ").strip()
-                    if cpf_cliente:
-                        cursor.execute("SELECT customer_id FROM customer WHERE cpf = %s;", (cpf_cliente,))
-                        cliente_existente = cursor.fetchone()
-                        if cliente_existente:
-                            cliente_id = cliente_existente[0]
-                            print(f"Cliente encontrado e associado (ID: {cliente_id}).")
-                        else:
-                            print("Cliente não encontrado com este CPF.")
-                            criar_novo = input("Deseja cadastrar um novo cliente? (s/n): ").strip().lower()
-                            if criar_novo == 's':
-                                print("\n--- Cadastrar Novo Cliente ---")
-                                nome_cliente = input("Nome do cliente: ").strip()
-                                email_cliente = input("E-mail do cliente (opcional): ").strip() or None
-                                telefone_cliente = input("Telefone do cliente (opcional): ").strip() or None
-                                endereco_cliente = input("Endereço do cliente (opcional): ").strip() or None
+                if input("Associar cliente existente? (s/n): ").strip().lower() == 's':
+                    cpf_cliente = input("CPF do cliente (somente números): ").strip()
+                    cursor.execute("SELECT customer_id FROM customer WHERE cpf = %s;", (cpf_cliente,))
+                    cliente = cursor.fetchone()
+                    if cliente:
+                        cliente_id = cliente[0]
+                        print("Cliente associado.")
+                    else:
+                        if input("Cadastrar novo cliente? (s/n): ").strip().lower() == 's':
+                            nome = input("Nome: ").strip()
+                            email = input("Email (opcional): ").strip() or None
+                            telefone = input("Telefone (opcional): ").strip() or None
+                            endereco = input("Endereço (opcional): ").strip() or None
+                            cursor.execute("""
+                                INSERT INTO customer (name, email, cpf, phone, address)
+                                VALUES (%s, %s, %s, %s, %s)
+                                RETURNING customer_id;
+                            """, (nome, email, cpf_cliente, telefone, endereco))
+                            cliente_id = cursor.fetchone()[0]
+                            conn.commit()
+                            print("Cliente cadastrado e associado.")
 
-                                cursor.execute(
-                                    """
-                                    INSERT INTO customer (name, email, cpf, phone, address)
-                                    VALUES (%s, %s, %s, %s, %s) RETURNING customer_id;
-                                    """,
-                                    (nome_cliente, email_cliente, cpf_cliente, telefone_cliente, endereco_cliente)
-                                )
-                                cliente_id = cursor.fetchone()[0]
-                                conn.commit()
-                                print(f"Novo cliente '{nome_cliente}' (ID: {cliente_id}) cadastrado e associado à venda.")
-                            else:
-                                print("Venda será registrada sem cliente associado.")
-                else:
-                    print("Venda será registrada sem cliente associado.")
+                metodo = input("Método de pagamento: ").strip() or "Não Informado"
+                status = input("Status do pagamento: ").strip() or "Pago"
 
-                metodo_pagamento = input("Método de pagamento (Ex: Crédito, Débito, Dinheiro, Pix): ").strip()
-                if not metodo_pagamento:
-                    metodo_pagamento = "Não Informado"
-                
-                status_pagamento = input("Status do pagamento (Ex: Pago, Pendente): ").strip()
-                if not status_pagamento:
-                    status_pagamento = "Pago"
-                
-                cursor.execute(
-                    """
+                cursor.execute("""
                     INSERT INTO sales (customer_id, employee_id, sale_date, total_value, payment_method, payment_status)
-                    VALUES (%s, %s, %s, %s, %s, %s) RETURNING sale_id;
-                    """,
-                    (cliente_id, employee_id_logado, date.today(), total_venda, metodo_pagamento, status_pagamento)
-                )
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    RETURNING sale_id;
+                """, (cliente_id, employee_id_logado, date.today(), total_venda, metodo, status))
                 sale_id = cursor.fetchone()[0]
 
                 for game_id, item in carrinho.items():
-                    subtotal_item = item['quantidade'] * item['preco_unitario']
-                    cursor.execute(
-                        """
+                    subtotal = item['quantidade'] * item['preco_unitario']
+                    cursor.execute("""
                         INSERT INTO sales_items (sale_id, game_id, quantity, unit_price, subtotal)
                         VALUES (%s, %s, %s, %s, %s);
-                        """,
-                        (sale_id, game_id, item['quantidade'], item['preco_unitario'], subtotal_item)
-                    )
-                    
-                    cursor.execute(
-                        "UPDATE stock SET quantity_available = quantity_available - %s WHERE game_id = %s;",
-                        (item['quantidade'], game_id)
-                    )
-                
+                    """, (sale_id, game_id, item['quantidade'], item['preco_unitario'], subtotal))
+                    cursor.execute("""
+                        UPDATE stock
+                        SET quantity_available = quantity_available - %s
+                        WHERE game_id = %s;
+                    """, (item['quantidade'], game_id))
+
                 conn.commit()
-                print(f"\nVenda {sale_id} finalizada com sucesso! Total: R$ {total_venda:.2f}")
+                print(f"Venda {sale_id} finalizada. Total: R$ {total_venda:.2f}")
                 input("Pressione Enter para continuar...")
                 return
 
             elif opcao == '0':
-                confirm_cancel = input("Tem certeza que deseja cancelar a venda? (s/n): ").strip().lower()
-                if confirm_cancel == 's':
+                if input("Cancelar a venda? (s/n): ").strip().lower() == 's':
                     print("Venda cancelada.")
                     input("Pressione Enter para continuar...")
                     return
                 else:
-                    print("Retornando à venda para continuar.")
+                    print("Cancelamento abortado.")
                     input("Pressione Enter para continuar...")
 
             else:
-                print("Opção inválida. Tente novamente.")
+                print("Opção inválida.")
                 input("Pressione Enter para continuar...")
 
-    except Exception as e:
-        print(f"Erro na operação de venda: {e}")
+    except Exception:
+        print("Erro na operação de venda:")
+        traceback.print_exc()
         if conn:
             conn.rollback()
+        input("Pressione Enter para continuar...")
+
     finally:
         if conn:
             conn.close()

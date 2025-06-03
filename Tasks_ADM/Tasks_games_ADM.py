@@ -298,15 +298,51 @@ def buscar_jogo():
             conn.close()
         input("\nPressione Enter para continuar...")
 
+def visualizar_estoque():
+    conn = criar_conexao()
+    if conn is None:
+        print("Erro ao conectar ao banco de dados.")
+        input("Pressione Enter para continuar...")
+        return
+
+    try:
+        cursor = conn.cursor()
+        limpar_tela()
+        print("\n--- Estoque de Jogos ---")
+
+        sql_estoque = """
+            SELECT g.game_name, COALESCE(s.quantity_available, 0) as quantity
+            FROM games g
+            LEFT JOIN stock s ON g.game_id = s.game_id
+            ORDER BY g.game_name;
+        """
+        cursor.execute(sql_estoque)
+        estoque_jogos = cursor.fetchall()
+
+        if estoque_jogos:
+            print(f"{'Nome do Jogo':<40} {'Estoque':<10}")
+            print("-" * 50)
+            for nome, quantidade in estoque_jogos:
+                print(f"{nome:<40} {quantidade:<10}")
+        else:
+            print("Nenhum jogo cadastrado ou sem informações de estoque.")
+    except Exception as e:
+        print(f"Erro ao consultar o estoque: {e}")
+    finally:
+        if conn:
+            conn.close()
+        input("\nPressione Enter para continuar...")
+
 def menu_games():
     while True:
         limpar_tela()
         print("\n--- Menu de Gerenciamento de Jogos ---")
-        print("1. Adicionar Novo Jogo")
-        print("2. Apagar Jogo Existente")
-        print("3. Atualizar Estoque de Jogo")
-        print("4. Buscar Jogo")
-        print("0. Sair")
+        print("1 --- Adicionar Novo Jogo")
+        print("2 --- Apagar Jogo Existente")
+        print("3 --- Atualizar Estoque de Jogo")
+        print("4 --- Buscar Jogo")
+        print("5 --- Visualizar Estoque")
+        print("0 --- Sair")
 
         opcao = input("Escolha uma opção: ").strip()
 
@@ -318,6 +354,8 @@ def menu_games():
             atualizar_estoque()
         elif opcao == '4':
             buscar_jogo()
+        elif opcao == '5':
+            visualizar_estoque()
         elif opcao == '0':
             print("Saindo do programa. Até mais!")
             break

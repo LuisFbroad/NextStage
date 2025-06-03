@@ -2,6 +2,9 @@ import os
 import time
 from db import criar_conexao
 import bcrypt
+import maskpass
+from Task_employee.employee_venda import *
+from Task_employee.employee_games import *
 
 def limpar_tela():
     if os.name == 'nt':
@@ -20,21 +23,24 @@ def login_funcionario():
         print("\n--- Login de Funcionário ---")
 
         email = input("E-mail: ").strip()
-        password = input("Senha: ").strip()
+        password = maskpass.askpass(prompt="Digite sua senha: ", mask="#")
 
         if not email or not password:
             print("E-mail e senha não podem ser vazios.")
             input("Pressione Enter para continuar...")
             return None, None
 
-        cursor.execute("SELECT employee_id, password_hash, role, is_active FROM employee WHERE LOWER(email) = LOWER(%s);", (email,))
+        cursor.execute(
+            "SELECT employee_id, password_hash, role, is_active FROM employee WHERE LOWER(email) = LOWER(%s);",
+            (email,)
+        )
         resultado = cursor.fetchone()
 
         if resultado:
             employee_id, hashed_password_db, role, is_active = resultado
 
             if not is_active:
-                print("Sua conta de funcionário está inativa. Entre em contato com o administrador.")
+                print("Sua conta está inativa. Contate o administrador.")
                 input("Pressione Enter para continuar...")
                 return None, None
 
@@ -43,9 +49,9 @@ def login_funcionario():
                 input("Pressione Enter para continuar...")
                 return employee_id, role
             else:
-                print("E-mail ou senha inválidos.")
+                print("Senha incorreta.")
         else:
-            print("E-mail ou senha inválidos.")
+            print("Funcionário não encontrado.")
 
     except Exception as e:
         print(f"Erro durante o login: {e}")
@@ -53,5 +59,20 @@ def login_funcionario():
         if conn:
             conn.close()
         input("Pressione Enter para continuar...")
-    
+
     return None, None
+
+def enployee_menu(employee_id):
+    while True:
+        limpar_tela()
+        print("\n--- Menu Funcionario ---")        
+        print ("1 --- Vender Jogo")
+        print ("2 --- Buscar Jogo")
+        print ("3 --- Olhar Estoque")
+        print ("0 --- Fechar Sistema")        
+        opcao = input("Escolha uma opção: ").strip()
+
+        if opcao == "1":
+            employee_venda(employee_id)
+        elif opcao == "2":
+            buscar_jogo()

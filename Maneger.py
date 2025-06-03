@@ -30,9 +30,7 @@ def menu_adm():
         limpar_tela()
         print("\n--- Menu Administrador ---")
         print("1 --- Gerencia Joogs")
-        print("4 --- Gerenciar Funcionarios")
-        print("3 --- Alterar estoque")
-        print("2 --- Apagar jogo do Catálogo")
+        print("2 --- Gerenciar Funcionarios")
         print("0 --- Fechar Sistema")
         
         opcao = input("Escolha uma opção: ")
@@ -41,10 +39,6 @@ def menu_adm():
             menu_games()
         elif opcao == "2":
             menu_employee()
-        elif opcao == "3":
-            atualizar_estoque()
-        elif opcao == "4":
-            apagar_jogo()
         elif opcao == "0":
             break
         else:
