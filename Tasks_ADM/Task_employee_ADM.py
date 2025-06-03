@@ -347,6 +347,84 @@ def editar_funcionario():
             conn.close()
         input("Pressione Enter para continuar...")
 
+def visualizar_relatorio_vendas():
+    conn = criar_conexao()
+    if not conn:
+        print("Erro ao conectar ao banco de dados.")
+        input("Pressione Enter para continuar...")
+        return
+
+    try:
+        cursor = conn.cursor()
+
+        while True:
+            limpar_tela()
+            print("--- Relatório de Vendas ---")
+
+            cursor.execute("""
+                SELECT DISTINCT sale_id, sale_date, employee_name, customer_name, total_value
+                FROM vw_sales_details
+                ORDER BY sale_date DESC, sale_id DESC;
+            """)
+            vendas = cursor.fetchall()
+
+            if not vendas:
+                print("Nenhuma venda encontrada.")
+                input("Pressione Enter para voltar...")
+                break
+
+            print(f"\n{'ID Venda':<10} {'Data':<12} {'Funcionário':<25} {'Cliente':<25} {'Total':<15}")
+            print("-" * 90)
+            for sale_id, sale_date, employee, customer, total in vendas:
+                total_str = f"R$ {total:.2f}"
+                print(f"{sale_id:<10} {sale_date.strftime('%d/%m/%Y'):<12} {employee:<25} {customer:<25} {total_str:<15}")
+
+            print("\n---------------------------------")
+            print("Digite o 'ID da Venda' para ver os detalhes ou '0' para sair.")
+
+            try:
+                escolha = input("Opção: ").strip()
+                if escolha == '0':
+                    break
+                
+                id_venda_escolhida = int(escolha)
+
+                cursor.execute("""
+                    SELECT game_name, quantity, unit_price, subtotal
+                    FROM vw_sales_details
+                    WHERE sale_id = %s;
+                """, (id_venda_escolhida,))
+                
+                itens_venda = cursor.fetchall()
+
+                if not itens_venda:
+                    print("\nID de venda inválido. Tente novamente.")
+                    input("Pressione Enter para continuar...")
+                    continue
+
+                limpar_tela()
+                print(f"--- Detalhes da Venda #{id_venda_escolhida} ---")
+                print(f"\n{'Produto Vendido':<40} {'Qtde':<5} {'Preço Unit.':<15} {'Subtotal':<15}")
+                print("-" * 80)
+                for nome_jogo, qtde, preco_unit, subtotal in itens_venda:
+                    preco_str = f"R$ {preco_unit:.2f}"
+                    subtotal_str = f"R$ {subtotal:.2f}"
+                    print(f"{nome_jogo:<40} {qtde:<5} {preco_str:<15} {subtotal_str:<15}")
+                
+                print("-" * 80)
+                input("\nPressione Enter para voltar ao relatório...")
+
+            except ValueError:
+                print("\nEntrada inválida. Por favor, digite um número.")
+                input("Pressione Enter para continuar...")
+
+    except Exception as e:
+        print(f"Ocorreu um erro ao gerar o relatório: {e}")
+        input("Pressione Enter para continuar...")
+    finally:
+        if conn:
+            conn.close()
+
 def menu_employee():
     while True:
         limpar_tela()
@@ -355,6 +433,7 @@ def menu_employee():
         print("2. Mostrar Funcionários Cadastrados")
         print("3. Editar Funcionário")
         print("4. Remover Funcionário")
+        print("5. Relatorio de Vendas")
         print("0. Voltar ao Menu Principal")
 
         opcao = input("Escolha uma opção: ").strip()
@@ -367,6 +446,8 @@ def menu_employee():
             editar_funcionario()
         elif opcao == '4':
             remover_funcionario()
+        elif opcao == '5':
+            visualizar_relatorio_vendas()
         elif opcao == '0':
             break
         else:

@@ -55,24 +55,29 @@ def login_funcionario():
 
     except Exception as e:
         print(f"Erro durante o login: {e}")
-    finally:
-        if conn:
-            conn.close()
-        input("Pressione Enter para continuar...")
+
 
     return None, None
 
-def enployee_menu(employee_id):
+def employee_menu(employee_id):
     while True:
         limpar_tela()
-        print("\n--- Menu Funcionario ---")        
-        print ("1 --- Vender Jogo")
-        print ("2 --- Buscar Jogo")
-        print ("3 --- Olhar Estoque")
-        print ("0 --- Fechar Sistema")        
+        print("\n--- Menu Funcionário ---")
+        print("1 --- Vender Jogo")
+        print("2 --- Buscar Jogo")
+        print("3 --- Olhar Estoque")
+        print("0 --- Sair do Sistema")
         opcao = input("Escolha uma opção: ").strip()
 
         if opcao == "1":
             employee_venda(employee_id)
         elif opcao == "2":
             buscar_jogo()
+        elif opcao == "3":
+            visualizar_estoque()
+        elif opcao == "0":
+            print("\nSaindo do sistema...")
+            break
+        else:
+            print("\nOpção inválida. Tente novamente.")
+            input("Pressione Enter para continuar...")

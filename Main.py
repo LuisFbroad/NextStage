@@ -4,7 +4,7 @@ from datetime import datetime
 from Maneger import ADM
 from Maneger import menu_adm
 from Employee import login_funcionario
-from Employee import enployee_menu
+from Employee import employee_menu
 
 def entrar_menu():
     while True:
@@ -27,8 +27,10 @@ while True:
 
     if escolha == 1:
         try:
-         login_funcionario()
-         enployee_menu()
+            employee_id, role = login_funcionario()
+
+            if employee_id is not None:
+                employee_menu(employee_id)
         except Exception as e:
             erro_msg = f"Ocorreu um erro ao executar o cliente: {e}"
             time.sleep(2)
