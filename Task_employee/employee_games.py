@@ -31,16 +31,16 @@ def buscar_jogo():
             print("-" * 80)
             for nome, genero, preco, estoque in catalogo_jogos:
                 preco_str = f"R$ {preco:.2f}" if preco is not None else "N/A"
-                print(f"{nome:<40} {genero:<20} {preco_str:<10} {estoque:<8}")
+                # --- CORREÇÃO 1 AQUI ---
+                genero_str = genero if genero is not None else "Não Definido"
+                print(f"{nome:<40} {genero_str:<20} {preco_str:<10} {estoque:<8}")
         else:
             print("Nenhum jogo cadastrado no catálogo atualmente.")
 
         print("\n--- Buscar Jogo por Nome ---")
-        nome_busca = input("Digite o nome do jogo para buscar (parcial ou completo) ou ENTER para voltar: ").strip()
+        nome_busca = input("Digite o nome do jogo para buscar (ou ENTER para voltar): ").strip()
 
         if not nome_busca:
-            print("Operação de busca cancelada.")
-            input("Pressione Enter para continuar...")
             return
 
         sql_busca_por_nome = """
@@ -60,7 +60,9 @@ def buscar_jogo():
             print("-" * 80)
             for nome, genero, preco, estoque in resultados:
                 preco_str = f"R$ {preco:.2f}" if preco is not None else "N/A"
-                print(f"{nome:<40} {genero:<20} {preco_str:<10} {estoque:<8}")
+                # --- CORREÇÃO 2 AQUI ---
+                genero_str = genero if genero is not None else "Não Definido"
+                print(f"{nome:<40} {genero_str:<20} {preco_str:<10} {estoque:<8}")
         else:
             print(f"Nenhum jogo encontrado com o nome '{nome_busca}'.")
 
